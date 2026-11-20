@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="hero">
+    <div>
+      <small>PANEL DE ADMINISTRACIÓN</small>
+      <h1>Gestiona tu cafetería</h1>
+      <p>Productos y pedidos compartidos con la aplicación Java.</p>
+    </div>
+    <b>☕</b>
+  </section>
+
+  <div class="stats">
+    <div>Productos <strong>{{ products|length }}</strong></div>
+    <div>Pedidos <strong>{{ orders|length }}</strong></div>
+  </div>
+
+  <section class="panel">
+    <h2>Productos</h2>
+
+    <form class="grid" method="post" action="/products/add">
+      <input name="nombre" placeholder="Nombre" required>
+      <input name="categoria" placeholder="Categoría" required>
+      <input name="precio" type="number" min="0" step=".01" placeholder="Precio" required>
+      <input name="stock" type="number" min="0" placeholder="Stock" required>
+      <button>Agregar producto</button>
+    </form>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in products %}
+            <tr>
+              <td>{{ p.id_producto }}</td>
+              <td>{{ p.nombre }}</td>
+              <td>{{ p.categoria }}</td>
+              <td>{{ p.precio|money }}</td>
+              <td>{{ p.stock }}</td>
+              <td>
+                <details>
+                  <summary>Editar</summary>
+                  <form class="edit" method="post" action="/products/{{ p.id_producto }}/edit">
+                    <input name="nombre" value="{{ p.nombre }}" required>
+                    <input name="categoria" value="{{ p.categoria }}" required>
+                    <input name="precio" type="number" step=".01" min="0" value="{{ p.precio }}" required>
+                    <input name="stock" type="number" min="0" value="{{ p.stock }}" required>
+                    <button>Guardar</button>
+                  </form>
+                </details>
+                <form method="post" action="/products/{{ p.id_producto }}/delete" onsubmit="return confirm('¿Eliminar producto?')">
+                  <button class="danger">Eliminar</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="6">Sin productos.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Registrar pedido</h2>
+
+    <form class="grid" method="post" action="/orders/add">
+      <input name="cliente" placeholder="Cliente" required>
+      <select name="id_producto" required>
+        <option value="">Producto</option>
+        {% for p in products %}
+          <option value="{{ p.id_producto }}">{{ p.nombre }} · {{ p.precio|money }} · Stock {{ p.stock }}</option>
+        {% endfor %}
+      </select>
+      <input name="cantidad" type="number" min="1" value="1" required>
+      <select name="estado">
+        <option>Pendiente</option>
+        <option>En preparación</option>
+        <option>Entregado</option>
+        <option>Cancelado</option>
+      </select>
+      <button>Registrar pedido</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="heading">
+      <h2>Pedidos</h2>
+      <button class="secondary" onclick="location.reload()">↻ Actualizar tabla</button>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+            <tr>
+              <td>{{ o.id_pedido }}</td>
+              <td>{{ o.cliente }}</td>
+              <td>{{ o.producto }}</td>
+              <td>{{ o.cantidad }}</td>
+              <td>{{ o.total|money }}</td>
+              <td>{{ o.estado }}</td>
+              <td>
+                <details>
+                  <summary>Editar</summary>
+                  <form class="edit" method="post" action="/orders/{{ o.id_pedido }}/edit">
+                    <input name="cliente" value="{{ o.cliente }}" required>
+                    <select name="id_producto">
+                      {% for p in products %}
+                        <option value="{{ p.id_producto }}" {% if p.id_producto == o.id_producto %}selected{% endif %}>{{ p.nombre }}</option>
+                      {% endfor %}
+                    </select>
+                    <input name="cantidad" type="number" min="1" value="{{ o.cantidad }}" required>
+                    <select name="estado">
+                      {% for s in ['Pendiente', 'En preparación', 'Entregado', 'Cancelado'] %}
+                        <option {% if s == o.estado %}selected{% endif %}>{{ s }}</option>
+                      {% endfor %}
+                    </select>
+                    <button>Guardar</button>
+                  </form>
+                </details>
+                <form method="post" action="/orders/{{ o.id_pedido }}/delete" onsubmit="return confirm('¿Eliminar pedido?')">
+                  <button class="danger">Eliminar</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="7">Sin pedidos.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
